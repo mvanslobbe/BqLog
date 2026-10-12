@@ -196,6 +196,9 @@ namespace bq {
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|0.0000p-1022|1.00p-1022|1.999999999999a00p-4|"), "layout format a subnormal with precision");
                 log_inst.error(log_inst.cat.ModuleB, "|{:a}|{:A}|", static_cast<double>(INFINITY), static_cast<double>(NAN));
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|inf|NAN|"), "layout format a infinity and nan");
+                // The # flag always writes a radix point, and keeps the trailing zeros of g.
+                log_inst.error(log_inst.cat.ModuleB, "|{:#.0f}|{:#.0e}|{:#g}|{:#.3g}|{:#a}|{:#.0f}|{:#.0f}|", 1.5, 1.5, 1.5, 100.0, 1.0, 1e20, static_cast<double>(INFINITY));
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|2.|2.e+00|1.50000|100.|1.p+0|100000000000000000000.|inf|"), "layout format alternate form of floating point");
                 double dd { 3.14159265758 / 2.3 };
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.366e+00|"), "layout format");

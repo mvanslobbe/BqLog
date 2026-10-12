@@ -1506,15 +1506,21 @@ namespace bq {
     }
 
     // literal formats only, the library builds with -Wformat=2; returns 0 on failure.
-    // mode is 'f', 'e' or 'g'; value is finite and not negative, the caller writes the sign
-    static uint32_t format_decimal_snprintf(char* buf, size_t buf_size, char mode, bool upper, uint32_t precision, double value)
+    // mode is 'f', 'e' or 'g', alt is the # flag; value is finite and not negative, the caller writes the sign
+    static uint32_t format_decimal_snprintf(char* buf, size_t buf_size, char mode, bool upper, bool alt, uint32_t precision, double value)
     {
         const int32_t p = static_cast<int32_t>(precision);
         int32_t written;
         if (mode == 'f') {
-            written = snprintf(buf, buf_size, "%.*f", p, value);
+            written = alt ? snprintf(buf, buf_size, "%#.*f", p, value) : snprintf(buf, buf_size, "%.*f", p, value);
         } else if (mode == 'e') {
-            written = upper ? snprintf(buf, buf_size, "%.*E", p, value) : snprintf(buf, buf_size, "%.*e", p, value);
+            if (alt) {
+                written = upper ? snprintf(buf, buf_size, "%#.*E", p, value) : snprintf(buf, buf_size, "%#.*e", p, value);
+            } else {
+                written = upper ? snprintf(buf, buf_size, "%.*E", p, value) : snprintf(buf, buf_size, "%.*e", p, value);
+            }
+        } else if (alt) {
+            written = upper ? snprintf(buf, buf_size, "%#.*G", p, value) : snprintf(buf, buf_size, "%#.*g", p, value);
         } else {
             written = upper ? snprintf(buf, buf_size, "%.*G", p, value) : snprintf(buf, buf_size, "%.*g", p, value);
         }
@@ -1527,7 +1533,7 @@ namespace bq {
     // hexadecimal format of a finite value without its sign, like std::to_chars with chars_format::hex
     // in libstdc++: no 0x prefix; without a precision the shortest digits, with subnormals normalised;
     // with a precision, subnormals keep a leading 0 as printf's %a does
-    static uint32_t format_hex_float(char* buf, uint64_t bits, bool upper, uint32_t precision)
+    static uint32_t format_hex_float(char* buf, uint64_t bits, bool upper, bool alt, uint32_t precision)
     {
         const char* hex_digits = upper ? "0123456789ABCDEF" : "0123456789abcdef";
         uint64_t frac = bits & ((1ULL << 52) - 1);
@@ -1576,8 +1582,10 @@ namespace bq {
         }
         uint32_t len = 0;
         buf[len++] = static_cast<char>('0' + lead);
-        if (digits > 0) {
+        if (digits > 0 || alt) {
             buf[len++] = '.';
+        }
+        if (digits > 0) {
             const uint32_t frac_digits = digits < 13 ? digits : 13;
             for (uint32_t i = frac_digits; i > 0; --i) {
                 buf[len++] = hex_digits[(frac >> ((i - 1) * 4)) & 0xF];
@@ -1599,6 +1607,8 @@ namespace bq {
         const bool general = format_info_.type == 'g' || (format_info_.type == 'd' && format_info_.precision != 0xFFFFFFFF);
         // E, F and G write capitals; without a type nothing does
         const bool hex = format_info_.type == 'a';
+        // the # flag: always a radix point, and g keeps its trailing zeros
+        const bool alt = format_info_.prefix == '#';
         const bool upper = format_info_.upper && (e_style || hex || format_info_.type == 'f' || format_info_.type == 'g');
         // bit tests instead of signbit / isnan / isinf, which are CRT calls on MSVC
         uint64_t bits;
@@ -1633,7 +1643,7 @@ namespace bq {
             if (sign_char) {
                 hex_buf[hex_len++] = sign_char;
             }
-            hex_len += format_hex_float(hex_buf + hex_len, bits, upper, format_info_.precision == 0xFFFFFFFF ? 0xFFFFFFFF : precision);
+            hex_len += format_hex_float(hex_buf + hex_len, bits, upper, alt, format_info_.precision == 0xFFFFFFFF ? 0xFFFFFFFF : precision);
             expand_format_content_buff_size(format_content_cursor + hex_len);
             memcpy(&format_content[format_content_cursor], hex_buf, hex_len);
             format_content_cursor += hex_len;
@@ -1658,6 +1668,8 @@ namespace bq {
                 *dst++ = '.';
                 write_decimal_digits_padded(frac_digits, dst, precision);
                 dst += precision;
+            } else if (alt) {
+                *dst++ = '.';
             }
             format_content_cursor = static_cast<uint32_t>(dst - &format_content[0]);
             return;
@@ -1669,7 +1681,7 @@ namespace bq {
             buf[len++] = sign_char;
         }
         const char mode = e_style ? 'e' : (general ? 'g' : 'f');
-        const uint32_t digits_len = format_decimal_snprintf(buf + len, sizeof(buf) - len, mode, upper, precision, abs_value);
+        const uint32_t digits_len = format_decimal_snprintf(buf + len, sizeof(buf) - len, mode, upper, alt, precision, abs_value);
         if (digits_len == 0) {
             return;
         }
