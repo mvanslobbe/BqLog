@@ -542,6 +542,8 @@ namespace bq {
             case 'F':
             case 'x':
             case 'X':
+            case 'g':
+            case 'G':
             case 'o':
             case 'd':
                 // only one type
@@ -559,6 +561,9 @@ namespace bq {
                         fi.upper = true;
                     } else if (fi.type == 'F') {
                         fi.type = 'f';
+                        fi.upper = true;
+                    } else if (fi.type == 'G') {
+                        fi.type = 'g';
                         fi.upper = true;
                     } else
                         fi.upper = false;
@@ -1495,17 +1500,18 @@ namespace bq {
         return len - (radix_end - i - 1);
     }
 
-    // literal formats only, the library builds with -Wformat=2; returns 0 on failure
-    static uint32_t format_decimal_snprintf(char* buf, size_t buf_size, bool e_style, bool upper, bool plus, uint32_t precision, double value)
+    // literal formats only, the library builds with -Wformat=2; returns 0 on failure.
+    // mode is 'f', 'e' or 'g'; value is finite and not negative, the caller writes the sign
+    static uint32_t format_decimal_snprintf(char* buf, size_t buf_size, char mode, bool upper, uint32_t precision, double value)
     {
         const int32_t p = static_cast<int32_t>(precision);
         int32_t written;
-        if (!e_style) {
-            written = plus ? snprintf(buf, buf_size, "%+.*f", p, value) : snprintf(buf, buf_size, "%.*f", p, value);
-        } else if (upper) {
-            written = plus ? snprintf(buf, buf_size, "%+.*E", p, value) : snprintf(buf, buf_size, "%.*E", p, value);
+        if (mode == 'f') {
+            written = snprintf(buf, buf_size, "%.*f", p, value);
+        } else if (mode == 'e') {
+            written = upper ? snprintf(buf, buf_size, "%.*E", p, value) : snprintf(buf, buf_size, "%.*e", p, value);
         } else {
-            written = plus ? snprintf(buf, buf_size, "%+.*e", p, value) : snprintf(buf, buf_size, "%.*e", p, value);
+            written = upper ? snprintf(buf, buf_size, "%.*G", p, value) : snprintf(buf, buf_size, "%.*g", p, value);
         }
         if (written <= 0) {
             return 0;
@@ -1516,6 +1522,10 @@ namespace bq {
     void layout::insert_decimal(double value, uint32_t default_precision)
     {
         const bool e_style = (format_info_.type == 'e');
+        // g, or a precision without a type, is the general format
+        const bool general = format_info_.type == 'g' || (format_info_.type == 'd' && format_info_.precision != 0xFFFFFFFF);
+        // E, F and G write capitals; without a type nothing does
+        const bool upper = format_info_.upper && (e_style || format_info_.type == 'f' || format_info_.type == 'g');
         // bit tests instead of signbit / isnan / isinf, which are CRT calls on MSVC
         uint64_t bits;
         memcpy(&bits, &value, sizeof(bits));
@@ -1532,7 +1542,6 @@ namespace bq {
                 format_content[format_content_cursor++] = sign_char;
             }
             const bool is_nan = (bits & 0x000FFFFFFFFFFFFFULL) != 0;
-            const bool upper = (e_style || format_info_.type == 'f') && format_info_.upper;
             const char* word = is_nan ? (upper ? "NAN" : "nan") : (upper ? "INF" : "inf");
             memcpy(&format_content[format_content_cursor], word, 3);
             format_content_cursor += 3;
@@ -1541,11 +1550,11 @@ namespace bq {
         uint32_t precision = default_precision;
         if (format_info_.precision != 0xFFFFFFFF) {
             precision = bq::min_value(format_info_.precision, static_cast<uint32_t>(99));
-        } else if (e_style || format_info_.type == 'f') {
+        } else if (e_style || general || format_info_.type == 'f') {
             precision = 6;
         }
         const double abs_value = fabs(value);
-        if (!e_style && abs_value < 18446744073709551616.0 && precision <= 19) {
+        if (!e_style && !general && abs_value < 18446744073709551616.0 && precision <= 19) {
             // the signed conversion is a single instruction, the unsigned one a helper call on x64 MSVC
             const uint64_t int_part_raw = (abs_value < 9223372036854775808.0) ? static_cast<uint64_t>(static_cast<int64_t>(abs_value)) : static_cast<uint64_t>(abs_value);
             const double frac = abs_value - static_cast<double>(int_part_raw);
@@ -1569,10 +1578,16 @@ namespace bq {
         }
 
         char buf[512];
-        uint32_t len = format_decimal_snprintf(buf, sizeof(buf), e_style, format_info_.upper, format_info_.sign == '+', precision, value);
-        if (len == 0) {
+        uint32_t len = 0;
+        if (sign_char) {
+            buf[len++] = sign_char;
+        }
+        const char mode = e_style ? 'e' : (general ? 'g' : 'f');
+        const uint32_t digits_len = format_decimal_snprintf(buf + len, sizeof(buf) - len, mode, upper, precision, abs_value);
+        if (digits_len == 0) {
             return;
         }
+        len += digits_len;
         expand_format_content_buff_size(format_content_cursor + len);
         memcpy(&format_content[format_content_cursor], buf, static_cast<size_t>(len));
         format_content_cursor += len;

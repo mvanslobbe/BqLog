@@ -178,6 +178,13 @@ namespace bq {
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|1.500000|1.500000|1.500000|"), "layout format f default precision");
                 log_inst.error(log_inst.cat.ModuleB, "|{:F}|{:F}|{:.2F}|{:f}|", static_cast<double>(INFINITY), static_cast<double>(NAN), -static_cast<double>(INFINITY), static_cast<double>(INFINITY));
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|INF|NAN|-INF|inf|"), "layout format F infinity and nan");
+                // g and G are the general format, and so is a precision without a type.
+                log_inst.error(log_inst.cat.ModuleB, "|{:g}|{:g}|{:g}|{:G}|{:g}|", 1234567.891, 0.0001, 100.0, 1e-05, -2.5);
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|1.23457e+06|0.0001|100|1E-05|-2.5|"), "layout format g");
+                log_inst.error(log_inst.cat.ModuleB, "|{:.3g}|{:.3}|{:.3}|{:.0g}|{:10.3g}|{:.3}|", 2.675, 2.675, 1234567.891, 2.5, 2.675, 1.5f);
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|2.67|2.67|1.23e+06|2|      2.67|1.5|"), "layout format g precision");
+                log_inst.error(log_inst.cat.ModuleB, "|{:G}|{:g}|", static_cast<double>(INFINITY), static_cast<double>(NAN));
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|INF|nan|"), "layout format g infinity and nan");
                 double dd { 3.14159265758 / 2.3 };
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.366e+00|"), "layout format");
@@ -186,7 +193,7 @@ namespace bq {
                 log_inst.error(log_inst.cat.ModuleB, "|{:12d}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|1.365909851121739|"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3}|", dd);
-                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|       1.366|"), "layout format");
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|        1.37|"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{}|", -0.5);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|-0.500000000000000|"), "layout format negative fraction");
                 log_inst.error(log_inst.cat.ModuleB, "|{:+.1f}|", -0.25f);
@@ -355,7 +362,7 @@ namespace bq {
                 log_inst.error(log_inst.cat.ModuleB, "|{:12d}|", 100);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|         100|"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3}|", dd);
-                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|       1.366|"), "layout format");
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|        1.37|"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", 10000000000000.0);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.000e+13|"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3E}|", 10000000000000.0);
