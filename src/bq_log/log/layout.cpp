@@ -1547,19 +1547,8 @@ namespace bq {
             const uint64_t int_part_raw = (abs_value < 9223372036854775808.0) ? static_cast<uint64_t>(static_cast<int64_t>(abs_value)) : static_cast<uint64_t>(abs_value);
             const double frac = abs_value - static_cast<double>(int_part_raw);
             uint64_t int_part = int_part_raw;
-            uint64_t frac_digits = round_fraction_with_carry(frac, precision, int_part);
-            uint32_t int_digits = decimal_digits_count(int_part);
-            // drop fraction digits so the number fits in the width
-            const uint32_t int_width = int_digits + (sign_char ? 1U : 0U);
-            if (format_info_.width != 0 && format_info_.width < precision + 1 + int_width) {
-                const uint32_t fitted = format_info_.width > int_width ? format_info_.width - int_width - 1 : 0;
-                if (fitted != precision) {
-                    precision = fitted;
-                    int_part = int_part_raw;
-                    frac_digits = round_fraction_with_carry(frac, precision, int_part);
-                    int_digits = decimal_digits_count(int_part);
-                }
-            }
+            const uint64_t frac_digits = round_fraction_with_carry(frac, precision, int_part);
+            const uint32_t int_digits = decimal_digits_count(int_part);
             expand_format_content_buff_size(format_content_cursor + 1 + int_digits + 1 + precision);
             char* dst = &format_content[format_content_cursor];
             if (sign_char) {
@@ -1580,19 +1569,6 @@ namespace bq {
         uint32_t len = format_decimal_snprintf(buf, sizeof(buf), e_style, format_info_.upper, format_info_.sign == '+', precision, value);
         if (len == 0) {
             return;
-        }
-        if (!e_style && format_info_.width > 0) {
-            const char* dot = static_cast<const char*>(memchr(buf, '.', len));
-            const uint32_t int_width = dot ? static_cast<uint32_t>(dot - buf) : len;
-            if (format_info_.width < precision + 1 + int_width) {
-                const uint32_t fitted = format_info_.width > int_width ? format_info_.width - int_width - 1 : 0;
-                if (fitted != precision) {
-                    len = format_decimal_snprintf(buf, sizeof(buf), e_style, format_info_.upper, format_info_.sign == '+', fitted, value);
-                    if (len == 0) {
-                        return;
-                    }
-                }
-            }
         }
         expand_format_content_buff_size(format_content_cursor + len);
         memcpy(&format_content[format_content_cursor], buf, static_cast<size_t>(len));

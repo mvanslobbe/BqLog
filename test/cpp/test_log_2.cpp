@@ -170,13 +170,16 @@ namespace bq {
                 // The 0 flag does not pad infinity and NaN with zeros.
                 log_inst.error(log_inst.cat.ModuleB, "|{:010.2f}|{:010.2f}|{:010.2f}|{:+08}|", static_cast<double>(NAN), static_cast<double>(INFINITY), -static_cast<double>(INFINITY), static_cast<double>(INFINITY));
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|       nan|       inf|      -inf|    +inf|"), "layout format 0 flag with infinity and nan");
+                // The width is a minimum: it never drops digits of the precision.
+                log_inst.error(log_inst.cat.ModuleB, "|{:6.3f}|{:3.1f}|{:10.2f}|", 123.456, 1234.5, 1e20);
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|123.456|1234.5|100000000000000000000.00|"), "layout format width does not cut the precision");
                 double dd { 3.14159265758 / 2.3 };
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.366e+00|"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", 103.1234);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.031e+02|"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{:12d}|", dd);
-                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|1.3659098511|"), "layout format");
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|1.365909851121739|"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|       1.366|"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{}|", -0.5);
