@@ -377,6 +377,8 @@ namespace bq {
         time_zone_ptr_ = &input_time_zone;
         categories_name_array_ptr_ = categories_name_array_ptr;
         format_content_cursor = 0;
+        // the prefix uses the same insert functions, keep the previous line's format out of it
+        format_info_.reset();
         expand_format_content_buff_size(1024);
         auto result = layout_prefix(log_entry);
         if (result != enum_layout_result::finished) {
@@ -1198,10 +1200,15 @@ namespace bq {
         }
     }
 
+    // an integer presentation type turns a bool or a character into its integer value
+    static bq_forceinline bool is_integer_presentation(char type)
+    {
+        return type == 'd' || type == 'x' || type == 'b' || type == 'o';
+    }
+
     void layout::insert_bool(bool value)
     {
-        const char t = format_info_.type;
-        if (t == 'd' || t == 'x' || t == 'b' || t == 'o') {
+        if (is_integer_presentation(format_info_.type)) {
             insert_integral_unsigned(value ? 1U : 0U);
         } else if (value) {
             insert_str_utf8("true", static_cast<uint32_t>(sizeof("true") - 1));
@@ -1212,6 +1219,10 @@ namespace bq {
 
     void layout::insert_char(char value)
     {
+        if (is_integer_presentation(format_info_.type)) {
+            insert_integral_unsigned(static_cast<uint8_t>(value));
+            return;
+        }
         expand_format_content_buff_size(format_content_cursor + static_cast<uint32_t>(sizeof(char)));
         format_content[format_content_cursor] = value;
         ++format_content_cursor;
@@ -1219,11 +1230,19 @@ namespace bq {
 
     void layout::insert_char16(char16_t value)
     {
+        if (is_integer_presentation(format_info_.type)) {
+            insert_integral_unsigned(static_cast<uint16_t>(value));
+            return;
+        }
         insert_str_utf16((const char*)(&value), sizeof(decltype(value)));
     }
 
     void layout::insert_char32(char32_t value)
     {
+        if (is_integer_presentation(format_info_.type)) {
+            insert_integral_unsigned(static_cast<uint32_t>(value));
+            return;
+        }
         if (value <= 0xFFFF) {
             insert_str_utf16((const char*)(&value), sizeof(char16_t));
         } else {

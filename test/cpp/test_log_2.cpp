@@ -205,6 +205,11 @@ namespace bq {
                 // bool is written as true and false, and as 1 and 0 with an integer type.
                 log_inst.error(log_inst.cat.ModuleB, "|{}|{}|{:s}|{:d}|{:x}|{:#b}|{:o}|{:+d}|", true, false, true, true, true, true, false, true);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|true|false|true|1|1|0b1|0|+1|"), "layout format bool");
+                // A character with an integer type is written as its (unsigned) code.
+                log_inst.error(log_inst.cat.ModuleB, "|{:d}|{:x}|{:#x}|{:b}|{:c}|{:d}|{:+d}|{:05d}|", 'A', 'A', 'A', 'A', 'A', static_cast<char>(-1), 'A', 'A');
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|65|41|0x41|1000001|A|255|+65|00065|"), "layout format char as integer");
+                log_inst.error(log_inst.cat.ModuleB, "|{:x}|{:X}|", static_cast<char16_t>(0xE9), static_cast<char32_t>(0x1F600));
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|e9|1F600|"), "layout format char16 and char32 as integer");
                 double dd { 3.14159265758 / 2.3 };
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.366e+00|"), "layout format");
