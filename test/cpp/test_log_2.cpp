@@ -202,6 +202,9 @@ namespace bq {
                 // The space sign works for floating-point values too.
                 log_inst.error(log_inst.cat.ModuleB, "|{: .2f}|{: .1f}|{: e}|{: g}|{: a}|{: }|{: 08.2f}|", 1.5, -1.5, 1.5, 1.5, 1.5, static_cast<double>(NAN), 1.5);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t| 1.50|-1.5| 1.500000e+00| 1.5| 1.8p+0| nan| 0001.50|"), "layout format space sign of floating point");
+                // bool is written as true and false, and as 1 and 0 with an integer type.
+                log_inst.error(log_inst.cat.ModuleB, "|{}|{}|{:s}|{:d}|{:x}|{:#b}|{:o}|{:+d}|", true, false, true, true, true, true, false, true);
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|true|false|true|1|1|0b1|0|+1|"), "layout format bool");
                 double dd { 3.14159265758 / 2.3 };
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.366e+00|"), "layout format");

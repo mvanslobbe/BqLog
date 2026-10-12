@@ -200,15 +200,15 @@ namespace bq {
 
                 log_inst.fatal(log_inst.cat.ModuleA.SystemA, TEST_STR("This is a Test Log, param {0}, param {2}"), false, true);
 
-                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param FALSE, param TRUE"), "%s, Log Test 2", str_type);
+                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param false, param true"), "%s, Log Test 2", str_type);
 
                 log_inst.fatal(log_inst.cat.ModuleA.SystemA, TEST_STR("This is a Test Log, param {0}, param {2}"), false);
 
-                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param FALSE, param {2}"), "%s, Log Test 3", str_type);
+                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param false, param {2}"), "%s, Log Test 3", str_type);
 
                 log_inst.fatal(log_inst.cat.ModuleA.SystemA, TEST_STR("This is a Test Log, param {CCCAA{0}}, param {2}"), false);
 
-                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param {CCCAAFALSE}, param {2}"), "%s, Log Test 4", str_type);
+                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param {CCCAAfalse}, param {2}"), "%s, Log Test 4", str_type);
 
                 log_inst.verbose(log_inst.cat.ModuleA.SystemA, TEST_STR("This is a Test Log, param {0}, param {2}, param \'{3}\', string param:{4}"), 3.5f, 4542232, TEST_CHAR('a'), TEST_STR("real_value"));
 
@@ -271,15 +271,15 @@ namespace bq {
 
                 log_inst.fatal(log_inst.cat.ModuleA.SystemA, TEST_STR(u"This is a Test Log, param {0}, param {2}"), false, true);
 
-                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param FALSE, param TRUE"), "%s, Log Test 2", str_type);
+                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param false, param true"), "%s, Log Test 2", str_type);
 
                 log_inst.fatal(log_inst.cat.ModuleA.SystemA, TEST_STR(u"This is a Test Log, param {0}, param {2}"), false);
 
-                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param FALSE, param {2}"), "%s, Log Test 3", str_type);
+                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param false, param {2}"), "%s, Log Test 3", str_type);
 
                 log_inst.fatal(log_inst.cat.ModuleA.SystemA, TEST_STR(u"This is a Test Log, param {CCCAA{0}}, param {2}"), false);
 
-                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param {CCCAAFALSE}, param {2}"), "%s, Log Test 4", str_type);
+                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param {CCCAAfalse}, param {2}"), "%s, Log Test 4", str_type);
 
                 log_inst.verbose(log_inst.cat.ModuleA.SystemA, TEST_STR(u"This is a Test Log, param {0}, param {2}, param \'{3}\', string param:{4}"), 3.5f, 4542232, TEST_CHAR('a'), "real_value");
 
@@ -314,15 +314,15 @@ namespace bq {
 
                 log_inst.fatal(log_inst.cat.ModuleA.SystemA, TEST_STR(U"This is a Test Log, param {0}, param {2}"), false, true);
 
-                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param FALSE, param TRUE"), "%s, Log Test 2", str_type);
+                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param false, param true"), "%s, Log Test 2", str_type);
 
                 log_inst.fatal(log_inst.cat.ModuleA.SystemA, TEST_STR(U"This is a Test Log, param {0}, param {2}"), false);
 
-                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param FALSE, param {2}"), "%s, Log Test 3", str_type);
+                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param false, param {2}"), "%s, Log Test 3", str_type);
 
                 log_inst.fatal(log_inst.cat.ModuleA.SystemA, TEST_STR(U"This is a Test Log, param {CCCAA{0}}, param {2}"), false);
 
-                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param {CCCAAFALSE}, param {2}"), "%s, Log Test 4", str_type);
+                result.add_result(log_str.end_with("[F]\t[ModuleA.SystemA]\tThis is a Test Log, param {CCCAAfalse}, param {2}"), "%s, Log Test 4", str_type);
 
                 log_inst.verbose(log_inst.cat.ModuleA.SystemA, TEST_STR(U"This is a Test Log, param {0}, param {2}, param \'{3}\', string param:{4}"), 3.5f, 4542232, TEST_CHAR('a'), "real_value");
 

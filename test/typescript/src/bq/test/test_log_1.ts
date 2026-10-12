@@ -45,7 +45,7 @@ export class test_log_1 extends test_base {
         result.add_result((await test_manager.get_console_output()).includes(standard_output_1), "Float format test");
 
         var type_str = "SyncTest:";
-        const standard_output_base = "这些是结果，abc, abcde, -32, FALSE, TRUE, null, 3, 3823823, -32354, 测试字符串完整的， 结果完成了";
+        const standard_output_base = "这些是结果，abc, abcde, -32, false, true, null, 3, 3823823, -32354, 测试字符串完整的， 结果完成了";
         var standard_output = type_str + standard_output_base;
         log_inst_sync.info(type_str + "这些是结果，{}, {}, {}, {}, {}, {}, {}, {}, {}, {}， 结果完成了",
             "abc", "abcde", -32, false, true, null, 3, 3823823, -32354, "测试字符串完整的");

@@ -199,7 +199,7 @@ func Test_argument_types_and_fallback(t *testing.T) {
 		want string
 	}{
 		{"null", []any{bq.Arg{}}, "null"},
-		{"bool", []any{bq.Bool(false), bq.Bool(true)}, "FALSE|TRUE"},
+		{"bool", []any{bq.Bool(false), bq.Bool(true)}, "false|true"},
 		{"int8", []any{bq.I8(-128), bq.U8(255)}, "-128|255"},
 		{"int16", []any{bq.I16(-32768), bq.U16(65535)}, "-32768|65535"},
 		{"int32", []any{bq.I32(-2147483648), bq.U32(4294967295)}, "-2147483648|4294967295"},

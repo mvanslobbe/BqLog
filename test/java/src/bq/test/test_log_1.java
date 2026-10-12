@@ -41,7 +41,7 @@ public class test_log_1 extends test_base{
         log_inst_sync.info("Float value result: {}", 62.15645);
         result.add_result(test_manager.get_console_output().contains(standard_output), "Float format test");
         
-        standard_output = "这些是结果，abc, abcde, -32, FALSE, TRUE, null, 3, 3823823, -32354, 测试字符串完整的， 结果完成了";
+        standard_output = "这些是结果，abc, abcde, -32, false, true, null, 3, 3823823, -32354, 测试字符串完整的， 结果完成了";
         log_inst_sync.info("这些是结果，{}, {}, {}, {}, {}, {}, {}, {}, {}, {}， 结果完成了", "abc", "abcde", -32, false, true, null, (byte)3, 3823823, (short)-32354, "测试字符串完整的");
         result.check_log_output_end_with(standard_output, "basic param test 2");
         

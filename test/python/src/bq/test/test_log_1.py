@@ -56,7 +56,7 @@ class test_log_1(test_base):
 
         # Test 5: Multiple parameter types (matches Java exactly)
         standard_output = (
-            "\u8fd9\u4e9b\u662f\u7ed3\u679c\uff0cabc, abcde, -32, FALSE, TRUE, null, 3, 3823823, -32354, "
+            "\u8fd9\u4e9b\u662f\u7ed3\u679c\uff0cabc, abcde, -32, false, true, null, 3, 3823823, -32354, "
             "\u6d4b\u8bd5\u5b57\u7b26\u4e32\u5b8c\u6574\u7684\uff0c \u7ed3\u679c\u5b8c\u6210\u4e86"
         )
         log_inst_sync.info(

@@ -329,7 +329,7 @@ namespace bq {
         public:
             static bq::string trans(bool value)
             {
-                return value ? "TRUE" : "FALSE";
+                return value ? "true" : "false";
             }
             static bq::string trans(std::nullptr_t value)
             {

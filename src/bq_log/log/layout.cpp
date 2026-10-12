@@ -546,6 +546,8 @@ namespace bq {
             case 'G':
             case 'a':
             case 'A':
+            case 's':
+            case 'c':
             case 'o':
             case 'd':
                 // only one type
@@ -612,8 +614,6 @@ namespace bq {
             fi.fill = '0';
             fi.zero_pad = true;
         }
-        if (fi.type == ' ')
-            fi.type = 'd';
         return fi;
     }
 
@@ -1200,16 +1200,13 @@ namespace bq {
 
     void layout::insert_bool(bool value)
     {
-        if (value) {
-            uint32_t len = (uint32_t)sizeof("TRUE") - 1;
-            expand_format_content_buff_size(format_content_cursor + len);
-            memcpy(&format_content[format_content_cursor], "TRUE", len);
-            format_content_cursor += len;
+        const char t = format_info_.type;
+        if (t == 'd' || t == 'x' || t == 'b' || t == 'o') {
+            insert_integral_unsigned(value ? 1U : 0U);
+        } else if (value) {
+            insert_str_utf8("true", static_cast<uint32_t>(sizeof("true") - 1));
         } else {
-            uint32_t len = (uint32_t)sizeof("FALSE") - 1;
-            expand_format_content_buff_size(format_content_cursor + len);
-            memcpy(&format_content[format_content_cursor], "FALSE", len);
-            format_content_cursor += len;
+            insert_str_utf8("false", static_cast<uint32_t>(sizeof("false") - 1));
         }
     }
 
@@ -1604,7 +1601,7 @@ namespace bq {
     {
         const bool e_style = (format_info_.type == 'e');
         // g, or a precision without a type, is the general format
-        const bool general = format_info_.type == 'g' || (format_info_.type == 'd' && format_info_.precision != 0xFFFFFFFF);
+        const bool general = format_info_.type == 'g' || ((format_info_.type == ' ' || format_info_.type == 'd') && format_info_.precision != 0xFFFFFFFF);
         // E, F and G write capitals; without a type nothing does
         const bool hex = format_info_.type == 'a';
         // the # flag: always a radix point, and g keeps its trailing zeros

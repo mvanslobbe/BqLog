@@ -40,7 +40,7 @@ func test_log_basic() *test_result {
 	output, _ := get_console_output()
 	result.add_result(strings.Contains(output, standard_output), "Float format test")
 
-	standard_output = "这些是结果，abc, abcde, -32, FALSE, TRUE, null, 3, 3823823, -32354, 测试字符串完整的， 结果完成了"
+	standard_output = "这些是结果，abc, abcde, -32, false, true, null, 3, 3823823, -32354, 测试字符串完整的， 结果完成了"
 	log_inst_sync.Info("这些是结果，{}, {}, {}, {}, {}, {}, {}, {}, {}, {}， 结果完成了",
 		"abc", "abcde", int32(-32), false, true, nil,
 		int8(3), int32(3823823), int16(-32354), "测试字符串完整的")

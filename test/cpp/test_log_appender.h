@@ -1425,7 +1425,7 @@ namespace bq {
                     "decoder: truncated pointer is rejected");
                 result.add_result(malformed_decode("short_bool", malformed_file_with_entry({ bool_type }), text) != appender_decode_result::success,
                     "decoder: bool without its value byte is rejected");
-                result.add_result(malformed_decode("bool_value_7", malformed_file_with_entry({ bool_type, 7 }), text) == appender_decode_result::success && text.end_with("x=TRUE"),
+                result.add_result(malformed_decode("bool_value_7", malformed_file_with_entry({ bool_type, 7 }), text) == appender_decode_result::success && text.end_with("x=true"),
                     "decoder: any non-zero bool byte decodes as true (got \"%s\")", text.c_str());
                 // 1.5 as a little-endian double
                 result.add_result(malformed_decode("exact_double", malformed_file_with_entry({ double_type, 0, 0, 0, 0, 0, 0, 0xF8, 0x3F }), text) == appender_decode_result::success && text.end_with("x=1.500000000000000"),
