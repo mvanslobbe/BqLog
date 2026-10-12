@@ -210,6 +210,11 @@ namespace bq {
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|65|41|0x41|1000001|A|255|+65|00065|"), "layout format char as integer");
                 log_inst.error(log_inst.cat.ModuleB, "|{:x}|{:X}|", static_cast<char16_t>(0xE9), static_cast<char32_t>(0x1F600));
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|e9|1F600|"), "layout format char16 and char32 as integer");
+                // The precision of a string is its maximum width in columns; East Asian wide characters take two.
+                log_inst.error(log_inst.cat.ModuleB, "|{:.2}|{:<8.3}|{:>8.3}|{:.0}|{:.10}|", "hello", "hello", "hello", "hello", "hello");
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|he|hel     |     hel||hello|"), "layout format string precision");
+                log_inst.error(log_inst.cat.ModuleB, "|{:.2}|{:.1}|{:.3}|{:.2}|", "h\xc3\xa9llo", "\xe4\xb8\xad\xe6\x96\x87", "\xe4\xb8\xad\xe6\x96\x87", u"hello");
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|h\xc3\xa9||\xe4\xb8\xad|he|"), "layout format string precision in columns");
                 double dd { 3.14159265758 / 2.3 };
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.366e+00|"), "layout format");

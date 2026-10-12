@@ -1164,13 +1164,60 @@ namespace bq {
         format_content.fill_uninitialized(bq::roundup_pow_of_two(new_size) - format_content.size());
     }
 
+    // columns of a code point as std::format estimates them: 2 for the wide ranges, 1 otherwise
+    static bq_forceinline uint32_t estimated_width(uint32_t cp)
+    {
+        return ((cp >= 0x1100 && cp <= 0x115F) || (cp >= 0x2329 && cp <= 0x232A) || (cp >= 0x2E80 && cp <= 0x303E) || (cp >= 0x3040 && cp <= 0xA4CF)
+                   || (cp >= 0xAC00 && cp <= 0xD7A3) || (cp >= 0xF900 && cp <= 0xFAFF) || (cp >= 0xFE10 && cp <= 0xFE19) || (cp >= 0xFE30 && cp <= 0xFE6F)
+                   || (cp >= 0xFF00 && cp <= 0xFF60) || (cp >= 0xFFE0 && cp <= 0xFFE6) || (cp >= 0x1F300 && cp <= 0x1F64F) || (cp >= 0x1F900 && cp <= 0x1F9FF)
+                   || (cp >= 0x20000 && cp <= 0x2FFFD) || (cp >= 0x30000 && cp <= 0x3FFFD))
+            ? 2
+            : 1;
+    }
+
+    // bytes of the longest prefix of a UTF-8 string that fits in max_columns
+    static uint32_t utf8_prefix_in_columns(const char* str, uint32_t len, uint32_t max_columns)
+    {
+        uint32_t pos = 0;
+        uint32_t columns = 0;
+        while (pos < len) {
+            const uint8_t lead = static_cast<uint8_t>(str[pos]);
+            uint32_t size = 1;
+            uint32_t cp = lead;
+            if (lead >= 0xF0) {
+                size = 4;
+                cp = lead & 0x07U;
+            } else if (lead >= 0xE0) {
+                size = 3;
+                cp = lead & 0x0FU;
+            } else if (lead >= 0xC0) {
+                size = 2;
+                cp = lead & 0x1FU;
+            }
+            if (pos + size > len) {
+                size = len - pos;
+            }
+            for (uint32_t i = 1; i < size; ++i) {
+                cp = (cp << 6) | (static_cast<uint8_t>(str[pos + i]) & 0x3FU);
+            }
+            columns += estimated_width(cp);
+            if (columns > max_columns) {
+                break;
+            }
+            pos += size;
+        }
+        return pos;
+    }
+
     uint32_t layout::insert_str_utf8(const char* str, const uint32_t len)
     {
-        expand_format_content_buff_size(format_content_cursor + len);
-        memcpy(&format_content[format_content_cursor], str, len);
-        format_content_cursor += len;
+        // the precision of a string is the maximum number of columns
+        const uint32_t write_len = (format_info_.precision != 0xFFFFFFFF) ? utf8_prefix_in_columns(str, len, format_info_.precision) : len;
+        expand_format_content_buff_size(format_content_cursor + write_len);
+        memcpy(&format_content[format_content_cursor], str, write_len);
+        format_content_cursor += write_len;
         assert(format_content_cursor <= format_content.size());
-        return len;
+        return write_len;
     }
 
     uint32_t layout::insert_str_utf16(const char* str, const uint32_t len)
@@ -1179,6 +1226,9 @@ namespace bq {
         uint32_t max_bytes_len = (len * 3 / 2 + 1);
         expand_format_content_buff_size(format_content_cursor + max_bytes_len);
         auto write_size = bq::util::utf16_to_utf8(reinterpret_cast<const char16_t*>(str), len >> 1, &format_content[format_content_cursor], max_bytes_len);
+        if (format_info_.precision != 0xFFFFFFFF) {
+            write_size = utf8_prefix_in_columns(&format_content[format_content_cursor], write_size, format_info_.precision);
+        }
         format_content_cursor += write_size;
         assert(format_content_cursor <= format_content.size());
         return write_size;
