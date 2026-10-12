@@ -185,6 +185,17 @@ namespace bq {
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|2.67|2.67|1.23e+06|2|      2.67|1.5|"), "layout format g precision");
                 log_inst.error(log_inst.cat.ModuleB, "|{:G}|{:g}|", static_cast<double>(INFINITY), static_cast<double>(NAN));
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|INF|nan|"), "layout format g infinity and nan");
+                // a and A are the hexadecimal format: no 0x prefix, shortest digits unless a precision is given.
+                log_inst.error(log_inst.cat.ModuleB, "|{:a}|{:a}|{:a}|{:a}|{:A}|{:a}|", 1.5, 0.0, -0.5, 0.1, 0.1, 1e300);
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|1.8p+0|0p+0|-1p-1|1.999999999999ap-4|1.999999999999AP-4|1.7e43c8800759cp+996|"), "layout format a");
+                log_inst.error(log_inst.cat.ModuleB, "|{:.2a}|{:.0a}|{:.0a}|{:.1a}|{:.3a}|{:.20a}|", 0.1, 1.5, 1.75, 1.96875, 1.0, 1.5);
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|1.9ap-4|2p+0|2p+0|2.0p+0|1.000p+0|1.80000000000000000000p+0|"), "layout format a precision");
+                log_inst.error(log_inst.cat.ModuleB, "|{:a}|{:a}|{:a}|{:a}|", 4.9e-324, 2.2250738585072014e-308, 2.2250738585072009e-308, 0.1f);
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|1p-1074|1p-1022|1.ffffffffffffep-1023|1.99999ap-4|"), "layout format a subnormal and float");
+                log_inst.error(log_inst.cat.ModuleB, "|{:.4a}|{:.2a}|{:.15a}|", 4.9e-324, 2.2250738585072009e-308, 0.1);
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|0.0000p-1022|1.00p-1022|1.999999999999a00p-4|"), "layout format a subnormal with precision");
+                log_inst.error(log_inst.cat.ModuleB, "|{:a}|{:A}|", static_cast<double>(INFINITY), static_cast<double>(NAN));
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|inf|NAN|"), "layout format a infinity and nan");
                 double dd { 3.14159265758 / 2.3 };
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.366e+00|"), "layout format");

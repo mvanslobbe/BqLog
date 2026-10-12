@@ -544,6 +544,8 @@ namespace bq {
             case 'X':
             case 'g':
             case 'G':
+            case 'a':
+            case 'A':
             case 'o':
             case 'd':
                 // only one type
@@ -564,6 +566,9 @@ namespace bq {
                         fi.upper = true;
                     } else if (fi.type == 'G') {
                         fi.type = 'g';
+                        fi.upper = true;
+                    } else if (fi.type == 'A') {
+                        fi.type = 'a';
                         fi.upper = true;
                     } else
                         fi.upper = false;
@@ -1519,13 +1524,82 @@ namespace bq {
         return normalize_radix(buf, bq::min_value(static_cast<uint32_t>(written), static_cast<uint32_t>(buf_size - 1)));
     }
 
+    // hexadecimal format of a finite value without its sign, like std::to_chars with chars_format::hex
+    // in libstdc++: no 0x prefix; without a precision the shortest digits, with subnormals normalised;
+    // with a precision, subnormals keep a leading 0 as printf's %a does
+    static uint32_t format_hex_float(char* buf, uint64_t bits, bool upper, uint32_t precision)
+    {
+        const char* hex_digits = upper ? "0123456789ABCDEF" : "0123456789abcdef";
+        uint64_t frac = bits & ((1ULL << 52) - 1);
+        const uint32_t biased_exp = static_cast<uint32_t>((bits >> 52) & 0x7FF);
+        uint32_t lead = 1;
+        int32_t exponent = static_cast<int32_t>(biased_exp) - 1023;
+        if (biased_exp == 0) {
+            if (frac == 0) {
+                lead = 0;
+                exponent = 0;
+            } else if (precision != 0xFFFFFFFF) {
+                lead = 0;
+                exponent = -1022;
+            } else {
+                exponent = -1022;
+                while ((frac & (1ULL << 52)) == 0) {
+                    frac <<= 1;
+                    --exponent;
+                }
+                frac &= (1ULL << 52) - 1;
+            }
+        }
+        uint32_t digits = 13;
+        if (precision == 0xFFFFFFFF) {
+            while (digits > 0 && (frac & 0xF) == 0) {
+                frac >>= 4;
+                --digits;
+            }
+        } else if (precision < 13) {
+            // round half to even on the dropped digits
+            const uint32_t shift = (13 - precision) * 4;
+            const uint64_t rem = frac & ((1ULL << shift) - 1);
+            const uint64_t half = 1ULL << (shift - 1);
+            frac >>= shift;
+            const bool odd = (precision == 0) ? ((lead & 1) != 0) : ((frac & 1) != 0);
+            if (rem > half || (rem == half && odd)) {
+                ++frac;
+                if (frac == (1ULL << (precision * 4))) {
+                    frac = 0;
+                    ++lead;
+                }
+            }
+            digits = precision;
+        } else {
+            digits = precision;
+        }
+        uint32_t len = 0;
+        buf[len++] = static_cast<char>('0' + lead);
+        if (digits > 0) {
+            buf[len++] = '.';
+            const uint32_t frac_digits = digits < 13 ? digits : 13;
+            for (uint32_t i = frac_digits; i > 0; --i) {
+                buf[len++] = hex_digits[(frac >> ((i - 1) * 4)) & 0xF];
+            }
+            for (uint32_t i = frac_digits; i < digits; ++i) {
+                buf[len++] = '0';
+            }
+        }
+        buf[len++] = upper ? 'P' : 'p';
+        buf[len++] = exponent < 0 ? '-' : '+';
+        len += write_decimal_digits(static_cast<uint64_t>(exponent < 0 ? -exponent : exponent), buf + len);
+        return len;
+    }
+
     void layout::insert_decimal(double value, uint32_t default_precision)
     {
         const bool e_style = (format_info_.type == 'e');
         // g, or a precision without a type, is the general format
         const bool general = format_info_.type == 'g' || (format_info_.type == 'd' && format_info_.precision != 0xFFFFFFFF);
         // E, F and G write capitals; without a type nothing does
-        const bool upper = format_info_.upper && (e_style || format_info_.type == 'f' || format_info_.type == 'g');
+        const bool hex = format_info_.type == 'a';
+        const bool upper = format_info_.upper && (e_style || hex || format_info_.type == 'f' || format_info_.type == 'g');
         // bit tests instead of signbit / isnan / isinf, which are CRT calls on MSVC
         uint64_t bits;
         memcpy(&bits, &value, sizeof(bits));
@@ -1552,6 +1626,18 @@ namespace bq {
             precision = bq::min_value(format_info_.precision, static_cast<uint32_t>(99));
         } else if (e_style || general || format_info_.type == 'f') {
             precision = 6;
+        }
+        if (hex) {
+            char hex_buf[128];
+            uint32_t hex_len = 0;
+            if (sign_char) {
+                hex_buf[hex_len++] = sign_char;
+            }
+            hex_len += format_hex_float(hex_buf + hex_len, bits, upper, format_info_.precision == 0xFFFFFFFF ? 0xFFFFFFFF : precision);
+            expand_format_content_buff_size(format_content_cursor + hex_len);
+            memcpy(&format_content[format_content_cursor], hex_buf, hex_len);
+            format_content_cursor += hex_len;
+            return;
         }
         const double abs_value = fabs(value);
         if (!e_style && !general && abs_value < 18446744073709551616.0 && precision <= 19) {
