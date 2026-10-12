@@ -1519,6 +1519,11 @@ namespace bq {
         const bool negative = (bits >> 63) != 0;
         const char sign_char = negative ? '-' : (format_info_.sign == '+' ? '+' : '\0');
         if ((bits & 0x7FF0000000000000ULL) == 0x7FF0000000000000ULL) {
+            // the 0 flag has no effect on infinity and NaN
+            if (format_info_.zero_pad) {
+                format_info_.zero_pad = false;
+                format_info_.fill = ' ';
+            }
             expand_format_content_buff_size(format_content_cursor + 4);
             if (sign_char) {
                 format_content[format_content_cursor++] = sign_char;

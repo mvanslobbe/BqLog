@@ -167,6 +167,9 @@ namespace bq {
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|        12|    12    |0000000012|00000-42|"), "layout format 0 flag with an alignment");
                 log_inst.error(log_inst.cat.ModuleB, "|{:+>8}|{:->8}|", 42, 42);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|++++++42|------42|"), "layout format sign character as fill");
+                // The 0 flag does not pad infinity and NaN with zeros.
+                log_inst.error(log_inst.cat.ModuleB, "|{:010.2f}|{:010.2f}|{:010.2f}|{:+08}|", static_cast<double>(NAN), static_cast<double>(INFINITY), -static_cast<double>(INFINITY), static_cast<double>(INFINITY));
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|       nan|       inf|      -inf|    +inf|"), "layout format 0 flag with infinity and nan");
                 double dd { 3.14159265758 / 2.3 };
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.366e+00|"), "layout format");
