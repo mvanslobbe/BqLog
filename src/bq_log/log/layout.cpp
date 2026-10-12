@@ -557,6 +557,9 @@ namespace bq {
                     } else if (fi.type == 'B') {
                         fi.type = 'b';
                         fi.upper = true;
+                    } else if (fi.type == 'F') {
+                        fi.type = 'f';
+                        fi.upper = true;
                     } else
                         fi.upper = false;
                 }
@@ -1529,7 +1532,7 @@ namespace bq {
                 format_content[format_content_cursor++] = sign_char;
             }
             const bool is_nan = (bits & 0x000FFFFFFFFFFFFFULL) != 0;
-            const bool upper = e_style && format_info_.upper;
+            const bool upper = (e_style || format_info_.type == 'f') && format_info_.upper;
             const char* word = is_nan ? (upper ? "NAN" : "nan") : (upper ? "INF" : "inf");
             memcpy(&format_content[format_content_cursor], word, 3);
             format_content_cursor += 3;
@@ -1538,7 +1541,7 @@ namespace bq {
         uint32_t precision = default_precision;
         if (format_info_.precision != 0xFFFFFFFF) {
             precision = bq::min_value(format_info_.precision, static_cast<uint32_t>(99));
-        } else if (e_style) {
+        } else if (e_style || format_info_.type == 'f') {
             precision = 6;
         }
         const double abs_value = fabs(value);

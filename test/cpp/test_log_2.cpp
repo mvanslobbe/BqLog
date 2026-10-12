@@ -173,6 +173,11 @@ namespace bq {
                 // The width is a minimum: it never drops digits of the precision.
                 log_inst.error(log_inst.cat.ModuleB, "|{:6.3f}|{:3.1f}|{:10.2f}|", 123.456, 1234.5, 1e20);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|123.456|1234.5|100000000000000000000.00|"), "layout format width does not cut the precision");
+                // f and F default to 6 digits after the point; F writes INF and NAN in capitals.
+                log_inst.error(log_inst.cat.ModuleB, "|{:f}|{:F}|{:f}|", 1.5, 1.5, 1.5f);
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|1.500000|1.500000|1.500000|"), "layout format f default precision");
+                log_inst.error(log_inst.cat.ModuleB, "|{:F}|{:F}|{:.2F}|{:f}|", static_cast<double>(INFINITY), static_cast<double>(NAN), -static_cast<double>(INFINITY), static_cast<double>(INFINITY));
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|INF|NAN|-INF|inf|"), "layout format F infinity and nan");
                 double dd { 3.14159265758 / 2.3 };
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.366e+00|"), "layout format");
