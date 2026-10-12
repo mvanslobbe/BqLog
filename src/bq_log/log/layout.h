@@ -32,6 +32,7 @@ namespace bq {
             char align = '>'; // <>^=
             char sign = '-'; //+ - default(-)
             char prefix = ' ';
+            bool zero_pad = false; // 0 flag without an alignment: pad with zeros after the sign and prefix
             uint32_t offset = 0;
             uint32_t width = 0; // total width
             uint32_t precision = 0xFFFFFFFF; // float width
@@ -44,6 +45,7 @@ namespace bq {
                 align = '<'; // <>^=
                 sign = '-'; //+ - default(-)
                 prefix = ' ';
+                zero_pad = false;
                 offset = 0;
                 width = 0; // total width
                 precision = 0xFFFFFFFF; // float width

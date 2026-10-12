@@ -108,7 +108,7 @@ namespace bq {
                 log_inst.error(log_inst.cat.ModuleB, "|{:<10d}|", i);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|12        |"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{:>010d}|", i);
-                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|0000000012|"), "layout format");
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|        12|"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{:<010d}|", i);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|12        |"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{:#010x}|", i);
@@ -116,7 +116,7 @@ namespace bq {
                 log_inst.error(log_inst.cat.ModuleB, "|{:<#010x}|", i);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|0xc       |"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{:>#010x}|", i);
-                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|0x0000000c|"), "layout format");
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|       0xc|"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{:06d}|", i);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|000012|"), "layout format");
                 log_inst.error(log_inst.cat.ModuleB, "|{:^06d}|", i);
@@ -162,6 +162,11 @@ namespace bq {
                 // + on an unsigned 0 is still written.
                 log_inst.error(log_inst.cat.ModuleB, "|{:+d}|{:+d}|", static_cast<uint32_t>(0), static_cast<uint64_t>(0));
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|+0|+0|"), "layout format plus sign of unsigned zero");
+                // The 0 flag pads with zeros only without an alignment; a 0 before an alignment is a fill character.
+                log_inst.error(log_inst.cat.ModuleB, "|{:>010d}|{:^010d}|{:0>10}|{:0>8}|", 12, 12, 12, -42);
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|        12|    12    |0000000012|00000-42|"), "layout format 0 flag with an alignment");
+                log_inst.error(log_inst.cat.ModuleB, "|{:+>8}|{:->8}|", 42, 42);
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|++++++42|------42|"), "layout format sign character as fill");
                 double dd { 3.14159265758 / 2.3 };
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.366e+00|"), "layout format");

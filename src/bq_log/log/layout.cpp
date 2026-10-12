@@ -479,6 +479,14 @@ namespace bq {
         bool precision = false;
         bool align = false;
         bool fill = false;
+        bool zero = false;
+        // any character followed by an alignment is the fill character
+        if (len > 2 && style[1] != '{' && style[1] != '}' && (style[2] == '<' || style[2] == '>' || style[2] == '^')) {
+            fi.fill = static_cast<char>(style[1]);
+            fi.align = static_cast<char>(style[2]);
+            align = true;
+            index = 2;
+        }
         // Only supports maximum 99 bit length alignment
         char width[3] = { '0', 0, 0 };
         while (true) {
@@ -552,10 +560,6 @@ namespace bq {
                     } else
                         fi.upper = false;
                 }
-                // Fill space when use x-style and right aligned
-                if ((c == 'x' || c == 'X') && fi.align != '>') {
-                    fi.fill = ' ';
-                }
                 break;
             case '.':
                 precision = true;
@@ -567,6 +571,8 @@ namespace bq {
                 if (c == ' ' && !fill && !(index + 1 < len && (style[index + 1] == '<' || style[index + 1] == '>' || style[index + 1] == '^'))) {
                     // a space that is not the fill of an alignment is the space sign
                     fi.sign = ' ';
+                } else if (c == '0' && !fill && !precision) {
+                    zero = true;
                 } else if (!fill && (c < '1' || c > '9')) {
                     fi.fill = c;
                     if (fi.align == '^' || fi.align == '<')
@@ -588,6 +594,11 @@ namespace bq {
         } else {
             fi.width = static_cast<uint32_t>(atoi(width));
         }
+        // the 0 flag is ignored when an alignment is given
+        if (zero && !align) {
+            fi.fill = '0';
+            fi.zero_pad = true;
+        }
         if (fi.type == ' ')
             fi.type = 'd';
         return fi;
@@ -607,7 +618,7 @@ namespace bq {
             if (format_info_.align == '>') {
                 // zero padding goes after the sign and the 0x/0b prefix, any other fill in front
                 uint32_t lead = 0;
-                if (format_info_.fill == '0' && dis > 0) {
+                if (format_info_.zero_pad && dis > 0) {
                     char first = format_content[write_begin_pos];
                     if (first == '+' || first == '-' || (first == ' ' && format_info_.sign == ' ')) {
                         lead = 1;
