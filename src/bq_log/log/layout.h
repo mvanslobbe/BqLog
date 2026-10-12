@@ -29,10 +29,11 @@ namespace bq {
             bool used = false;
             bool upper = true;
             char fill = ' ';
-            char align = '>'; // <>^=
+            char align = '\0'; // <>^, or 0 for the default of the argument type
             char sign = '-'; //+ - default(-)
             char prefix = ' ';
             bool zero_pad = false; // 0 flag without an alignment: pad with zeros after the sign and prefix
+            bool text = false; // the argument was written as text, which aligns left by default
             uint32_t offset = 0;
             uint32_t width = 0; // total width
             uint32_t precision = 0xFFFFFFFF; // float width
@@ -42,10 +43,11 @@ namespace bq {
                 used = false;
                 upper = true;
                 fill = ' ';
-                align = '<'; // <>^=
+                align = '\0';
                 sign = '-'; //+ - default(-)
                 prefix = ' ';
                 zero_pad = false;
+                text = false;
                 offset = 0;
                 width = 0; // total width
                 precision = 0xFFFFFFFF; // float width

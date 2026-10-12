@@ -215,6 +215,11 @@ namespace bq {
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|he|hel     |     hel||hello|"), "layout format string precision");
                 log_inst.error(log_inst.cat.ModuleB, "|{:.2}|{:.1}|{:.3}|{:.2}|", "h\xc3\xa9llo", "\xe4\xb8\xad\xe6\x96\x87", "\xe4\xb8\xad\xe6\x96\x87", u"hello");
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|h\xc3\xa9||\xe4\xb8\xad|he|"), "layout format string precision in columns");
+                // Without an alignment, text aligns left and numbers right.
+                log_inst.error(log_inst.cat.ModuleB, "|{:8}|{:8}|{:8}|{:8}|{:>8}|", "hi", u"hi", true, 'A', "hi");
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|hi      |hi      |true    |A       |      hi|"), "layout format default alignment of text");
+                log_inst.error(log_inst.cat.ModuleB, "|{:8}|{:8.1f}|{:8d}|{:8d}|", 12, 1.5, true, 'A');
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|      12|     1.5|       1|      65|"), "layout format default alignment of numbers");
                 double dd { 3.14159265758 / 2.3 };
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.366e+00|"), "layout format");

@@ -629,8 +629,10 @@ namespace bq {
         if (dis < format_info_.width) {
             expand_format_content_buff_size(write_begin_pos + format_info_.width);
             uint32_t fill_count = format_info_.width - dis;
+            // text aligns left by default, numbers right
+            const char align = format_info_.align ? format_info_.align : (format_info_.text ? '<' : '>');
             // alignment right
-            if (format_info_.align == '>') {
+            if (align == '>') {
                 // zero padding goes after the sign and the 0x/0b prefix, any other fill in front
                 uint32_t lead = 0;
                 if (format_info_.zero_pad && dis > 0) {
@@ -659,7 +661,7 @@ namespace bq {
                 }
             }
             // alignment left
-            else if (format_info_.align == '<') {
+            else if (align == '<') {
                 // fill
                 for (uint32_t i = 0; i < fill_count; i++) {
                     uint32_t opt_index = format_content_cursor + i;
@@ -667,7 +669,7 @@ namespace bq {
                 }
             }
             // alignment middle
-            else if (format_info_.align == '^') {
+            else if (align == '^') {
                 // an odd fill character goes after the value, as in std::format
                 uint32_t front = fill_count / 2;
                 uint32_t end = fill_count - front;
@@ -811,7 +813,7 @@ namespace bq {
                             break;
                         case bq::log_arg_type_enum::null_type:
                             assert(sizeof(void*) >= 4);
-                            insert_str_utf8("null", static_cast<uint32_t>(sizeof("null") - 1));
+                            insert_pointer(nullptr);
                             args.skip_null();
                             break;
                         case bq::log_arg_type_enum::pointer_type:
@@ -1057,7 +1059,7 @@ namespace bq {
                             break;
                         case bq::log_arg_type_enum::null_type:
                             assert(sizeof(void*) >= 4);
-                            insert_str_utf8("null", static_cast<uint32_t>(sizeof("null") - 1));
+                            insert_pointer(nullptr);
                             args.skip_null();
                             break;
                         case bq::log_arg_type_enum::pointer_type:
@@ -1213,6 +1215,7 @@ namespace bq {
     {
         // the precision of a string is the maximum number of columns
         const uint32_t write_len = (format_info_.precision != 0xFFFFFFFF) ? utf8_prefix_in_columns(str, len, format_info_.precision) : len;
+        format_info_.text = true;
         expand_format_content_buff_size(format_content_cursor + write_len);
         memcpy(&format_content[format_content_cursor], str, write_len);
         format_content_cursor += write_len;
@@ -1226,6 +1229,7 @@ namespace bq {
         uint32_t max_bytes_len = (len * 3 / 2 + 1);
         expand_format_content_buff_size(format_content_cursor + max_bytes_len);
         auto write_size = bq::util::utf16_to_utf8(reinterpret_cast<const char16_t*>(str), len >> 1, &format_content[format_content_cursor], max_bytes_len);
+        format_info_.text = true;
         if (format_info_.precision != 0xFFFFFFFF) {
             write_size = utf8_prefix_in_columns(&format_content[format_content_cursor], write_size, format_info_.precision);
         }
@@ -1274,6 +1278,7 @@ namespace bq {
             return;
         }
         expand_format_content_buff_size(format_content_cursor + static_cast<uint32_t>(sizeof(char)));
+        format_info_.text = true;
         format_content[format_content_cursor] = value;
         ++format_content_cursor;
     }
@@ -1901,7 +1906,7 @@ namespace bq {
                             break;
                         case bq::log_arg_type_enum::null_type:
                             assert(sizeof(void*) >= 4);
-                            insert_str_utf8("null", static_cast<uint32_t>(sizeof("null") - 1));
+                            insert_pointer(nullptr);
                             args_data_cursor += 4;
                             break;
                         case bq::log_arg_type_enum::pointer_type:
@@ -2117,7 +2122,7 @@ namespace bq {
                             break;
                         case bq::log_arg_type_enum::null_type:
                             assert(sizeof(void*) >= 4);
-                            insert_str_utf8("null", static_cast<uint32_t>(sizeof("null") - 1));
+                            insert_pointer(nullptr);
                             args_data_cursor += 4;
                             break;
                         case bq::log_arg_type_enum::pointer_type:
