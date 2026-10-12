@@ -220,6 +220,9 @@ namespace bq {
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|hi      |hi      |true    |A       |      hi|"), "layout format default alignment of text");
                 log_inst.error(log_inst.cat.ModuleB, "|{:8}|{:8.1f}|{:8d}|{:8d}|", 12, 1.5, true, 'A');
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|      12|     1.5|       1|      65|"), "layout format default alignment of numbers");
+                // The width of text is counted in columns, like its precision.
+                log_inst.error(log_inst.cat.ModuleB, "|{:6}|{:>6}|{:^7}|{:*<5.3}|", "\xe4\xb8\xad\xe6\x96\x87", "h\xc3\xa9llo", "\xe4\xb8\xad", "\xe4\xb8\xad\xe6\x96\x87");
+                result.add_result(log_str.end_with("[E]\t[ModuleB]\t|\xe4\xb8\xad\xe6\x96\x87  | h\xc3\xa9llo|  \xe4\xb8\xad   |\xe4\xb8\xad***|"), "layout format width of text in columns");
                 double dd { 3.14159265758 / 2.3 };
                 log_inst.error(log_inst.cat.ModuleB, "|{:12.3e}|", dd);
                 result.add_result(log_str.end_with("[E]\t[ModuleB]\t|   1.366e+00|"), "layout format");
